@@ -1,26 +1,46 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect, useReducer } from 'react'
 import TodoList from './TodoList'
+import { Context } from './context'
+import reducer from './reducer'
 
-export default class App extends Component {
-  state = {
-    todos: [
-      {id: 1, title: 'First todo', completed: false},
-      {id: 2, title: 'Second todo', completed: true},
-    ]
+export default function App() {
+  const [state, dispatch] = useReducer(reducer, JSON.parse(localStorage.getItem('todos')))
+  const [todoTitle, setTodoTitle] = useState('')
+
+  useEffect(() => {
+    localStorage.setItem('todos', JSON.stringify(state))
+  }, [state])
+
+  const addTodo = e => {
+    if (e.key === 'Enter') {
+        dispatch({
+          type: 'add',
+          payload: todoTitle
+        })
+      setTodoTitle('');
+    }
   }
 
-  render() {
-    return (
+  return (
+    <Context.Provider value ={{
+      dispatch
+    }}>
       <div className="container">
-        <h1>Todo app</h1>
+        <h2>Todo app</h2>
 
-          <div className="input-field">
-            <input type="text" />
-            <label>Todo name</label>
-          </div>
+        <div className="input-field">
+          <input
+            type="text"
+            onChange={e => setTodoTitle(e.target.value)}
+            value={todoTitle}
+            onKeyPress={addTodo}
+          />
+          <label>Todo name</label>
+        </div>
 
-          <TodoList todos={this.state.todos} />
+        <TodoList todos={state} />
       </div>
-    );
-  }
+    </Context.Provider>
+
+  );
 }
